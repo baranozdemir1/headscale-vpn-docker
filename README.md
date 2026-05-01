@@ -194,9 +194,9 @@ Check status and logs:
 
 ```bash
 docker compose ps
-docker logs -f headscale
-docker logs -f headplane
-docker logs -f tailscale-exit-node
+docker compose logs -f headscale
+docker compose logs -f headplane
+docker compose logs -f tailscale-exit-node
 ```
 
 Verify Headscale:
@@ -211,12 +211,28 @@ Then open Headplane:
 https://vpn-plane.xxx.com
 ```
 
+## Headscale CLI
+
+The examples below use `docker exec -it` to run the Headscale CLI inside the running Headscale container.
+
+Set a helper variable first:
+
+```bash
+HEADSCALE_CONTAINER="$(docker compose ps -q headscale)"
+```
+
+Then use:
+
+```bash
+docker exec -it "$HEADSCALE_CONTAINER" headscale <command>
+```
+
 ## Generate a Headplane API Key
 
 Headplane authenticates to Headscale with a Headscale API key. Generate one inside the running Headscale container:
 
 ```bash
-docker compose exec headscale \
+docker exec -it "$HEADSCALE_CONTAINER" \
   headscale apikeys create --expiration 90d
 ```
 
@@ -238,8 +254,8 @@ docker compose restart headplane
 Useful API key commands:
 
 ```bash
-docker compose exec headscale headscale apikeys list
-docker compose exec headscale headscale apikeys expire --prefix <KEY_PREFIX>
+docker exec -it "$HEADSCALE_CONTAINER" headscale apikeys list
+docker exec -it "$HEADSCALE_CONTAINER" headscale apikeys expire --prefix <KEY_PREFIX>
 ```
 
 ## Add a User
@@ -247,19 +263,19 @@ docker compose exec headscale headscale apikeys expire --prefix <KEY_PREFIX>
 Create a Headscale user:
 
 ```bash
-docker compose exec headscale headscale users create alice
+docker exec -it "$HEADSCALE_CONTAINER" headscale users create alice
 ```
 
 List users:
 
 ```bash
-docker compose exec headscale headscale users list
+docker exec -it "$HEADSCALE_CONTAINER" headscale users list
 ```
 
 Create a pre-authentication key:
 
 ```bash
-docker compose exec headscale \
+docker exec -it "$HEADSCALE_CONTAINER" \
   headscale preauthkeys create --user alice --expiration 24h
 ```
 
@@ -274,7 +290,7 @@ sudo tailscale up \
 For a reusable provisioning key:
 
 ```bash
-docker compose exec headscale \
+docker exec -it "$HEADSCALE_CONTAINER" \
   headscale preauthkeys create \
   --user alice \
   --reusable \
@@ -296,8 +312,8 @@ Install Tailscale on each device:
 The easiest flow is to create a Headscale user and a pre-authentication key first:
 
 ```bash
-docker compose exec headscale headscale users create alice
-docker compose exec headscale \
+docker exec -it "$HEADSCALE_CONTAINER" headscale users create alice
+docker exec -it "$HEADSCALE_CONTAINER" \
   headscale preauthkeys create --user alice --expiration 24h
 ```
 
@@ -329,7 +345,7 @@ tailscale ip
 On the Headscale server, confirm that the node exists:
 
 ```bash
-docker compose exec headscale headscale nodes list
+docker exec -it "$HEADSCALE_CONTAINER" headscale nodes list
 ```
 
 ### Interactive Login
@@ -343,7 +359,7 @@ sudo tailscale up --login-server https://vpn.xxx.com
 The client prints a registration URL or machine key. Register it on the Headscale server:
 
 ```bash
-docker compose exec headscale \
+docker exec -it "$HEADSCALE_CONTAINER" \
   headscale nodes register \
   --user alice \
   --key <MACHINE_KEY>
@@ -398,8 +414,8 @@ TS_EXTRA_ARGS: --login-server=${HEADSCALE_URL} --advertise-exit-node --accept-ro
 Create a user and pre-authentication key for the exit node:
 
 ```bash
-docker compose exec headscale headscale users create exit-node
-docker compose exec headscale \
+docker exec -it "$HEADSCALE_CONTAINER" headscale users create exit-node
+docker exec -it "$HEADSCALE_CONTAINER" \
   headscale preauthkeys create \
   --user exit-node \
   --reusable \
@@ -424,13 +440,13 @@ Headscale requires double opt-in for exit nodes. The node advertises the exit ro
 List advertised routes:
 
 ```bash
-docker compose exec headscale headscale nodes list-routes
+docker exec -it "$HEADSCALE_CONTAINER" headscale nodes list-routes
 ```
 
 Find the exit node ID for `vps-exit-node`, then approve the exit route:
 
 ```bash
-docker compose exec headscale \
+docker exec -it "$HEADSCALE_CONTAINER" \
   headscale nodes approve-routes \
   --identifier <NODE_ID> \
   --routes 0.0.0.0/0
