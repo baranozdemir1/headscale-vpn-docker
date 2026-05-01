@@ -1,6 +1,13 @@
 # Headscale VPN Docker
 
-Docker Compose setup for running [Headscale](https://headscale.net/), [Headplane](https://headplane.net/), and a containerized Tailscale exit node.
+Self-hosted VPN Docker Compose stack for running [Headscale](https://headscale.net/), [Headplane](https://headplane.net/), and a containerized Tailscale exit node. It is designed for Dokploy, homelab, and VPS deployments where you want a private WireGuard mesh VPN with a self-hosted Tailscale-compatible control server.
+
+Use this repository when you want:
+
+- A Docker Compose Headscale deployment.
+- Headplane as a web UI for managing users, nodes, and settings.
+- A Tailscale exit node container for routing client internet traffic through your VPS.
+- A Dokploy-friendly layout using persistent `../files` config mounts.
 
 The current compose file runs three services:
 
